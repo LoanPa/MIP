@@ -4,9 +4,12 @@
  *  Created on: Apr 15, 2024
  *      Author: Alumno
  */
+#include <stdlib.h>
 
 #ifndef LED_MODULE_LIB_H_
 #define LED_MODULE_LIB_H_
+
+#define NUM_DIGITS 2
 
 #define D1 (1<<10)
 #define D2 (1<<11)
@@ -20,21 +23,23 @@
 
 #define OFF = -1
 
-int currentNumber = 0;
+ 
+struct digit {
+	int8_t curr ;
+	int8_t next;
+	uint16_t dir;
+};
 
-/*
-struct Display
+struct display {
+	struct digit digits[NUM_DIGITS];
+	int8_t active;
+};
 
-{
-	int number;
-	
-} Display;
-*/
-
+struct display* createDisplay(uint16_t* dir, int length);
 void initPorts();
-void setNumber(int led);
+void loadNumber(struct display *disp, uint8_t digit);
 void turnOff();
-void refresh(int number, int display);
+void refresh(struct display *digits);
 
 
 #endif /* LED_MODULE_LIB_H_ */
