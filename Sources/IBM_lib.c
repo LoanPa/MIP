@@ -6,33 +6,20 @@
  */
 #include "IBM_lib.h"
 #include "derivative.h"
-#define IN 0
-#define OUT 1
 
-#define PERIODE 13
-#define DATA_LINE 0
-#define CLOCK_LINE 1
-char clock = 0;
 
-void KB_pin_init()
-{
+void KB_pin_init(){
     SIM_SCGC5 |= SIM_SCGC5_PORTB_MASK;
     PORT_PCR_REG(PORTB_BASE_PTR, DATA_LINE)  = PORT_PCR_MUX(1);
     PORT_PCR_REG(PORTB_BASE_PTR, CLOCK_LINE) = PORT_PCR_MUX(1);
     
+    // Clock line out
     GPIOB_PDDR |= 1<< CLOCK_LINE;
+    // Data line in
+    GPIOB_PDDR &= !(1 << DATA_LINE);
 }
 
-void KB_data_dir(char dir)
-{
-    if (dir == OUT)
-    	GPIOB_PDDR |= 1 << CLOCK_LINE;   
-    if (dir == IN)
-    	GPIOB_PDDR &= !(1 << CLOCK_LINE);   
-}
-
-void KB_clock_init ()
-{
+void KB_clock_init (){
 	// Emprem el clock d'1kHz i activem el bypass del filtre
 	LPTMR0_BASE_PTR->PSR |= (1<<0) | (1 << 2);
 	
@@ -51,19 +38,69 @@ void KB_clock_init ()
 	LPTMR0_BASE_PTR->CSR |= (1<<7);
 }
 
-void KB_clock_manage(){
-	
+void KB_clock_event_manager(int status){
+	if(status)
+	{
+		
+	}
+	else
+	{
+		
+	}
 }
 
-void KB_clock_tick(){
-	clock = 1 & (GPIOB_PDOR >> CLOCK_LINE);
+void KB_clock_set(int status){
+	if (status)
+		GPIOB_PSOR |= (1 << CLOCK_LINE);
+	else
+		GPIOB_PCOR |= (1 << CLOCK_LINE);
+}
 
+void KB_clock_event(){
+	//Mirem el valor 
+	//clock = 1 & (GPIOB_PDOR >> CLOCK_LINE);
 	
+	clock = !clock;
+	
+	if (clock == 0)
+	{
+		KB_clock_set(OFF);
+
+	}
+	else
+	{
+		KB_clock_set(ON);
+		KB_clock_event_manager();
+		KB_data_listen();
+	}
+	
+	// Tornar a activar el clock
+	LPTMR0_BASE_PTR->CSR |= (1<<7);
+}
+
+void KB_data_listen(){
+	data_bit = 1 & (GPIOB_PDOR >> DATA_LINE);
+	data |= (data_bit << bitNumber);
+	// Si es l'utim bit del stream guardem el valor a data_ready
+	if(bitNumber == STREAM_LEN -1)
+	{
+		data_ready = data;
+		bitNumber = 0;
+	}
+	bitnumber ++;
+
+}
+
+char KB_data_process(){
+	if(!data_ready)
+		return 0;
+	char result;
+	/* Data processing*/
+	return result;
 }
 
 void LPTimer_IRQHandler() __attribute__((interrupt("IRQ")));
 void LPTimer_IRQHandler (void)
 {
-	// Tornar a activar el clock
-	LPTMR0_BASE_PTR->CSR |= (1<<7);
+	KB_clock_event();
 }
