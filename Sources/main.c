@@ -18,8 +18,8 @@ int main(void)
 		count++;
 	}
 	
-	disp->digits[0].next = 3;
-	loadNumber(disp, 0);
+	disp->digits[1].next = 3;
+	loadNumber(disp, 1);
 	refresh(disp);
 	
 	free(disp);

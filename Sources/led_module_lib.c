@@ -1,7 +1,8 @@
 #include "derivative.h"
 #include "led_module_lib.h"
 
-struct display* createDisplay(uint16_t* dir, int length) {
+struct display* createDisplay(uint16_t* dir, int length)
+ {
 	int i;
 	
 	struct display* tmp = malloc(length * sizeof(struct display));

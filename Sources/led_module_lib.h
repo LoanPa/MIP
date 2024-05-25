@@ -34,7 +34,6 @@ struct display {
 	struct digit digits[NUM_DIGITS];
 	int8_t active;
 };
-
 struct display* createDisplay(uint16_t* dir, int length);
 void initPorts();
 void loadNumber(struct display *disp, uint8_t digit);
