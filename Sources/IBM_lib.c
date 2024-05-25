@@ -38,16 +38,6 @@ void KB_clock_init (){
 	LPTMR0_BASE_PTR->CSR |= (1<<7);
 }
 
-void KB_clock_event_manager(int status){
-	if(status)
-	{
-		
-	}
-	else
-	{
-		
-	}
-}
 
 void KB_clock_set(int status){
 	if (status)
@@ -59,6 +49,7 @@ void KB_clock_set(int status){
 void KB_clock_event(){
 	//Mirem el valor 
 	//clock = 1 & (GPIOB_PDOR >> CLOCK_LINE);
+	LPTMR0_BASE_PTR->CSR |= (1<<7);
 	
 	clock = !clock;
 	
@@ -70,12 +61,10 @@ void KB_clock_event(){
 	else
 	{
 		KB_clock_set(ON);
-		KB_clock_event_manager();
 		KB_data_listen();
 	}
 	
 	// Tornar a activar el clock
-	LPTMR0_BASE_PTR->CSR |= (1<<7);
 }
 
 void KB_data_listen(){
