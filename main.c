@@ -19,9 +19,10 @@ void setup() {
 	pit_Init(FREQ);
 	setRecurrentFunction(refresh);
 	
-	KB_clock_init();
+	
 	KB_pin_init();
 	loadValue('o');
+	KB_clock_init();
 }
 
 void loop() {

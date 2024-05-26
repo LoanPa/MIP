@@ -29,11 +29,10 @@ void KB_clock_init (){
 	LPTMR0_BASE_PTR->PSR |= (2<<0) | (1 << 2);
 	
 	// Volem la interrupcio a cada cicle del clock
-	LPTMR0_BASE_PTR->CMR = 0;
+	LPTMR0_BASE_PTR->CMR = 1;
 	
 	// Donem energia al timer
-	SIM_SCGC5 |= SIM_SCGC5_LPTMR_MASK;
-	
+	LPTMR0_BASE_PTR->CSR |= (1<<0);
 	// Activar IRQ
 	LPTMR0_BASE_PTR->CSR |= (1<<6);
 	NVIC_BASE_PTR->ICPR |= 1 << (INT_LPTimer - 16);
@@ -41,6 +40,7 @@ void KB_clock_init (){
 	
 	// Iniciem el clock
 	LPTMR0_BASE_PTR->CSR |= (1<<7);
+	SIM_SCGC5 |= SIM_SCGC5_LPTMR_MASK;
 }
 
 
@@ -54,8 +54,7 @@ void KB_clock_set(int status){
 void KB_clock_event(){
    //Tornem a enviar l'interrupcio
 	LPTMR0_BASE_PTR->CSR |= (1<<7);
-	KB_data_listen();
-	/* 
+
 	clock = !clock;
 	
 	if (clock == 0)
@@ -68,12 +67,11 @@ void KB_clock_event(){
 		KB_clock_set(ON);
 
 	}
-	*/
+
 	// Tornar a activar el clock
 }
 
 void KB_data_listen(){
-	/*
 	// Llegir DATA
 	data_bit = 1 & (GPIOB_PDOR >> DATA_LINE);
 	data |= (data_bit << bitNumber);
@@ -84,7 +82,6 @@ void KB_data_listen(){
 		bitNumber = 0;
 	}
 	bitNumber ++;
-		*/
 	data = 0x1c;
 }
 
