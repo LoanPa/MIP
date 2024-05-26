@@ -142,9 +142,7 @@ static void nextDigit() {
 }
 
 void refresh() {
-	
-	int i;
-	
+		
 	if (disp.active > -1 && disp.digits) {
 		turnOff();
 		uint16_t value = encode(disp.digits[disp.active].value);

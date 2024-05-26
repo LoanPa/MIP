@@ -1,6 +1,7 @@
 #include "derivative.h"
 #include "led_module_lib.h"
 #include "pit_lib.h"
+#include "IBM_lib.h"
 
 #define FREQ 120 // Hz
 #define NUM_DIGITS 2
@@ -17,11 +18,18 @@ void setup() {
 	
 	pit_Init(FREQ);
 	setRecurrentFunction(refresh);
+	
+	KB_clock_init();
+	KB_pin_init();
 	loadValue('o');
 }
 
 void loop() {
-	// Do something
+	
+	char mostrar = KB_data_process();
+	
+	if(mostrar)
+		loadValue(mostrar);
 
 }
 
