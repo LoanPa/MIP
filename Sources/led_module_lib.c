@@ -1,19 +1,45 @@
 #include "derivative.h"
 #include "led_module_lib.h"
 
-struct display* createDisplay(uint16_t* dir, int length)
- {
+#define LED_A (1<<7)
+#define LED_B (1<<0)
+#define LED_C (1<<3)
+#define LED_D (1<<4)
+#define LED_E (1<<5)
+#define LED_F (1<<6)
+#define LED_G (1<<12)
+
+struct digit {
+	uint8_t value;
+	uint16_t dir;
+};
+
+struct display {
+	struct digit* digits;
+	uint8_t num_digits;
+	int8_t active;
+};
+
+static struct display disp;
+
+
+void createDisplay(const uint16_t* dir, const int length) {
 	int i;
 	
-	struct display* tmp = malloc(length * sizeof(struct display));
-	for(i = 0; i < length; i++) {
-		tmp->digits[i].curr = 0;
-		tmp->digits[i].dir = dir[i];
-		tmp->digits[i].next = 0;
-	}
-	tmp->active = -1;
+	disp.digits = malloc(length * sizeof(struct digit));
 	
-	return tmp;
+	if (!disp.digits) {
+		exit(-1);
+	}
+	
+	disp.num_digits = length;
+	
+	for(i = 0; i < length; i++) {
+		disp.digits[i].value = '0';
+		disp.digits[i].dir = dir[i];
+	}
+	
+	disp.active = -1;
 }
 
 void initPorts() {
@@ -39,47 +65,80 @@ void turnOff() {
 	GPIOC_PCOR |= LED_A | LED_B | LED_C | LED_D | LED_E | LED_F | LED_G;
 }
 
-void loadNumber(struct display *disp, uint8_t digit) {
+void loadValue(const char value) {
 	
-	if (digit < 0 || digit >= NUM_DIGITS)
-		return;
-	
-	if(disp->digits[digit].curr != disp->digits[digit].next){
-		//currentNumber = led;
-		disp->digits[digit].curr = disp->digits[digit].next;
-		disp->active = digit;
+	int ascii = value;
 		
+	if ((ascii > 100) || (ascii < 0)) return;
 	
-		//Apagem tots els LEDs
-		turnOff();
-		switch(disp->digits[digit].next) {
-			case 1 : 
-				GPIOC_PSOR |= LED_B | LED_C ; 
-				break;
-			case 2 : 
-				GPIOC_PSOR |= LED_A | LED_B | LED_G | LED_E| LED_D; 
-				break;
-			case 3 : 
-				GPIOC_PSOR |= LED_A | LED_B | LED_G | LED_C| LED_D; 
-				break;
-			// FALTA ACABAR TODO
-			default:  
-				break;
-		}
+	if (disp.digits) {
+		disp.digits[0].value = ascii / 10;
+		disp.digits[1].value = ascii % 10;
 	}
+	
 }
 
+static uint16_t encode(const uint8_t value) {
+	uint16_t ret;
+	
+	switch(value) {
+		case 0:
+			ret = LED_A | LED_B | LED_C | LED_D | LED_E | LED_F | LED_G; 
+			break;
+		case 1:
+			ret = LED_B | LED_C; 
+			break;
+		case 2:
+			ret = LED_A | LED_B | LED_G | LED_E | LED_D;
+			break;
+		case 3:
+			ret = LED_A | LED_B | LED_G | LED_C | LED_D;
+			break;
+		case 4:
+			ret = LED_B | LED_C | LED_F | LED_G;
+			break;
+		case 5:
+			ret = LED_A | LED_F | LED_G | LED_C | LED_D;
+			break;
+		case 6:
+			ret = LED_A | LED_F | LED_G | LED_C | LED_D | LED_E;
+			break;
+		case 7:
+			ret = LED_A | LED_B | LED_G | LED_C;
+			break;
+		case 8:
+			ret = LED_A | LED_B | LED_C | LED_D | LED_E | LED_F | LED_G;
+			break;
+		case 9:
+			ret = LED_A | LED_B | LED_C | LED_F | LED_G;
+			break;
+		default:
+			ret = LED_G;
+		}
+	
+	return ret;
+}
 
-void refresh(struct display *disp) {
+static void nextDigit() {
+	if (++disp.active >= disp.num_digits)
+		disp.active = 0;
+}
+
+void refresh() {
+	
 	int i;
 	
-	if (disp->active > -1) {
-		GPIOC_PSOR |= disp->digits[disp->active].dir;
-		for (i = 0; i < NUM_DIGITS; i++) {
-			if (i  != disp->active)
-				GPIOC_PCOR |= disp->digits[i].dir; 
-		}
-	}	
+	if (disp.active > -1 && disp.digits) {
+		uint16_t value = encode(disp.digits[disp.active].value);
+		GPIOC_PSOR |= disp.digits[disp.active].dir | value;
+		
+		for (i = 0; i < disp.num_digits; i++) {
+			if (i  != disp.active)
+				GPIOC_PCOR |= disp.digits[i].dir; 
+			}
+	}
+	
+	nextDigit();
 }
 
 

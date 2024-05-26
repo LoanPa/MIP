@@ -1,27 +1,37 @@
 #include "derivative.h"
 #include "led_module_lib.h"
+#include "pit_lib.h"
+
+#define FREQ 120 // Hz
+#define NUM_DIGITS 2
+
+
+void setup();
+void loop();
+
+void setup() {
+	const uint16_t dirs[NUM_DIGITS] = {D1, D2};
+	
+	createDisplay(dirs, NUM_DIGITS);
+	
+	pit_Init(FREQ);
+	setRecurrentFunction(refresh);
+
+	initPorts();
+}
+
+void loop() {
+	// Do something
+}
+
 
 int main(void)
 {
-	const uint16_t dirs[NUM_DIGITS] = {D1, D2};
-	int i, count = 0;
+	setup();
 	
-	struct display* disp = createDisplay(&dirs, NUM_DIGITS);
-	initPorts();
-	
-	disp->digits[0].next = 2;
-	loadNumber(disp, 0);
-	refresh(disp);
-	
-	for(i=0; i<999999 ;i++) 
-	{	   
-		count++;
+	while(1) {
+		loop();
 	}
 	
-	disp->digits[1].next = 3;
-	loadNumber(disp, 1);
-	refresh(disp);
-	
-	free(disp);
 	return 0;
 }
